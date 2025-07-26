@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List Countdown</title>
+  <link rel="stylesheet" href="Project to do list.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>To Do List</h1>
+    <form id="todo-form">
+      <p class="judulagenda">Agenda:</p>
+      <input type="text" id="agenda" placeholder="Enter the activity you want to do" required />
+      <p class="judulketerangan">Information:</p>
+      <textarea id="keterangan" placeholder="Enter activity infomation (Optional)"></textarea>
+      <input type="date" id="tanggal" required />
+      <p class="judultanggal">Date:</p>
+      <input type="time" id="jam" required />
+      <p class="judulwaktu">Time:</p>
+      <button type="submit">Tambah Agenda</button>
+    </form>
+
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById('todo-form');
+    const list = document.getElementById('todo-list');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const agenda = document.getElementById('agenda').value.trim();
+      const keterangan = document.getElementById('keterangan').value.trim();
+      const tanggal = document.getElementById('tanggal').value;
+      const jam = document.getElementById('jam').value;
+
+      if (!agenda || !tanggal || !jam) {
+        alert("Agenda, Tanggal, dan Jam wajib diisi!");
+        return;
+      }
+
+      const waktuAgenda = new Date(`${tanggal}T${jam}`);
+      const now = new Date();
+
+      if (waktuAgenda <= now) {
+        alert("Waktu agenda harus di masa depan!");
+        return;
+      }
+
+      const li = document.createElement('li');
+      const contentDiv = document.createElement('div');
+      const actionsDiv = document.createElement('div');
+      const countdownBox = document.createElement('div');
+      const hapusBtn = document.createElement('button');
+      const selesaiBtn = document.createElement('button');
+
+      contentDiv.innerHTML = `
+        <strong>${agenda}</strong><br>
+        ${keterangan ? `<small>${keterangan}</small><br>` : ""}
+        <small>${tanggal} | ${jam}</small>
+      `;
+
+      countdownBox.className = 'countdown-box';
+
+      hapusBtn.innerHTML = '❌';
+      hapusBtn.className = 'hapus-btn';
+
+      selesaiBtn.innerText = 'Selesai';
+      selesaiBtn.className = 'selesai-btn';
+
+      actionsDiv.className = 'action-buttons';
+      actionsDiv.appendChild(selesaiBtn);
+      actionsDiv.appendChild(hapusBtn);
+
+      li.appendChild(contentDiv);
+      li.appendChild(countdownBox);
+      li.appendChild(actionsDiv);
+      list.appendChild(li);
+
+      // Timer logic
+      const interval = setInterval(() => {
+        updateCountdown(countdownBox, waktuAgenda, interval, false);
+      }, 1000);
+
+      // Hapus
+      hapusBtn.addEventListener('click', () => {
+        clearInterval(interval);
+        list.removeChild(li);
+      });
+
+      // Selesai
+      selesaiBtn.addEventListener('click', () => {
+        clearInterval(interval);
+        hapusBtn.remove();
+        selesaiBtn.remove();
+        // Jika belum dimulai → langsung ubah ke selesai
+        countdownBox.textContent = 'Agenda telah selesai';
+        countdownBox.className = 'countdown-box finished';
+      });
+
+      // Set awal countdown
+      updateCountdown(countdownBox, waktuAgenda, interval, false);
+      form.reset();
+    });
+
+    function updateCountdown(box, targetTime, interval, forcedDone) {
+      const now = new Date();
+      const diff = targetTime - now;
+
+      if (diff <= 0) {
+        box.textContent = "Agenda telah dimulai";
+        box.className = "countdown-box started";
+        clearInterval(interval);
+        return;
+      }
+
+      const jam = Math.floor(diff / (1000 * 60 * 60));
+      const menit = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const detik = Math.floor((diff % (1000 * 60)) / 1000);
+
+      box.textContent = `${jam.toString().padStart(2, '0')}:${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
+    }
+  </script>
+</body>
+</html>
